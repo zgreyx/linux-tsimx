@@ -1,0 +1,66 @@
+/*
+ * Copyright (C) 2018 Technologic Systems
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+#include <dt-bindings/input/input.h>
+
+&fec2 {
+	status = "disabled";
+};
+
+&fec1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_enet1>;
+	phy-mode = "rmii";
+	phy-handle = <&ethphy8820>;
+	status = "okay";
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy8820: ethernet-phy@2 {
+			clocks = <&clks IMX6UL_CLK_ENET_REF>;
+			clock-names = "rmii-ref";
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <2>;
+		};
+	};
+};
+
+&flexcan2 {
+	status = "disabled";
+};
+
+&snvs_poweroff {
+	status = "disabled";
+};
+
+/* RS-485 0 */
+&uart4 {
+	fsl,uart-has-rtscts;
+	/* gpio 1_19 is initialized by the hog group in 4100.dtsi
+	 * It is the spare_2 pin, needs to be set up in FPGA to pass to TXEN
+	 */
+	fsl,uart-tx-enable-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
+	linux,rs485-enabled-at-boot-time;
+};
+
+/* Note that on the TS-8820, RS-485 1 is connected to a set of UART pins that
+ * are unconnected to any CPU UART. The physical pins are connected to UART_C
+ * in the 4100 FPGA. Due to the way the FPGA mux is set up, RS-485 1 on the
+ * TS-8820 is default unused and instead provides RS-485 0, isolated RS-232
+ * and standard RS-232. Any customization will require DTS modification
+ * (which includes setting up a TXEN pin), FPGA crossbar mux configuration for
+ * UART, and potentially FPGA crossbar mux configuration for the TXEN pin.
+ */
+
+&iomuxc {
+	pinctrl-1 = <&pinctrl_cam_gpio &pinctrl_lcd_gpio>;
+	imx6ul-ts4100 {
+	};
+};
